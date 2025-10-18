@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="microservice_chassis",
-    version="0.1.2",
+    version="0.1.3",
     packages=find_packages(),
     install_requires=[
         "pika",
@@ -15,3 +15,5 @@ setup(
     description="A reusable library for microservices",
     url="https://github.com/macc_ci_cd/aas/chassis",
 )
+
+#python setup.py sdist bdist_wheel  
