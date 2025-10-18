@@ -13,5 +13,5 @@ setup(
     author="Gorka Fernandez",
     author_email="gorka.fernandezg@alumni.mondragon.edu",
     description="A reusable library for microservices",
-    url="https://gitlab.com/macc_ci_cd/aas/chassis",
+    url="https://github.com/macc_ci_cd/aas/chassis",
 )
