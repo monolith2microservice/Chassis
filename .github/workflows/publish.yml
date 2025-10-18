@@ -1,28 +1,38 @@
-name: Publish Python package
+name: Publish Python package to GitHub Packages
 
 on:
   push:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install build dependencies
+
+      - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install setuptools wheel build twine
+
       - name: Build package
         run: python -m build
+
       - name: Publish to GitHub Packages
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+          python -m twine upload \
+            --repository-url https://upload.github.com/${{ github.repository }}/packages \
+            dist/*
