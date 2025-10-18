@@ -1,0 +1,26 @@
+image: python:3.12
+
+stages:
+  - build
+  - publish
+
+build:
+  stage: build
+  script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - python setup.py sdist bdist_wheel
+  artifacts:
+    paths:
+      - dist/
+
+publish:
+  stage: publish
+  script:
+    - pip install --upgrade pip
+    - pip install twine
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+  only:
+    - main
+  dependencies:
+    - build
