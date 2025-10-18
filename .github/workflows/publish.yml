@@ -2,37 +2,46 @@ name: Publish Python package to GitHub Packages
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch: {}
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
+    name: Build and publish package
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.12"
+          python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install build tools
         run: |
-          pip install --upgrade pip
-          pip install setuptools wheel build twine
+          python -m pip install --upgrade pip setuptools wheel
 
-      - name: Build package
-        run: python -m build
+      - name: Install dev requirements (if exists)
+        if: ${{ exists('requirements.txt') }}
+        run: |
+          pip install -r requirements.txt
 
-      - name: Publish to GitHub Packages
+      - name: Build source and wheel
+        run: |
+          python setup.py sdist bdist_wheel
+          ls -la dist
+
+      - name: Publish to GitHub Packages (twine)
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python -m twine upload \
-            --repository-url https://upload.pypi.org/legacy/ \
-            dist/*
+          python -m pip install --upgrade twine
+          # Reemplaza "orgs" por "users" en la URL si el repo es de usuario (no org).
+          python -m twine upload --repository-url "https://api.github.com/orgs/${{ github.repository_owner }}/packages/pypi/upload" dist/* --username "${TWINE_USERNAME}" --password "${TWINE_PASSWORD}"
