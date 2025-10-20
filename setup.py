@@ -13,7 +13,7 @@ setup(
     author="Gorka Fernandez",
     author_email="gorka.fernandezg@alumni.mondragon.edu",
     description="A reusable library for microservices",
-    url="https://github.com/macc_ci_cd/aas/chassis",
+    url="https://github.com/monolith2microservice/Chassis",
 )
 
 #python setup.py sdist bdist_wheel  
