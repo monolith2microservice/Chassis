@@ -16,6 +16,7 @@ https://github.com/monolith2microservice/Chassis
 | `EventPublisher` | Connects to RabbitMQ and publishes JSON events to a given exchange. Includes automatic reconnection attempts. |
 | `setup_logging()` | Configures standardized logging format and level based on `settings.LOG_LEVEL`. |
 | `router` | Provides a FastAPI router with a default health-check endpoint at `/health`. |
+| `EventSuscriber` | Connects to RabbitMQ and reads |
 
 ---
 
@@ -31,10 +32,10 @@ https://github.com/monolith2microservice/Chassis
 | `get_element_by_id` | ✅ | Used for fetching single pieces by ID. |
 | `delete_element_by_id` | ✅ | Used for removing pieces or other records. |
 | `raise_and_log_error` | ✅ | Standardized error handling for API endpoints. |
-| `EventPublisher` | ✅ | Publishes piece-related events to RabbitMQ; reusable in other services. |
+| `EventPublisher` | ✅ | Publishes piece-related events to RabbitMQ |
 | `setup_logging` | ✅ | Standardizes logging across services. |
 | `router` | ✅ | Provides a health check endpoint; can be extended in other services. |
-
+| `EventSuscriber` | ✅ | Connects to RabbitMQ and reads|
 ---
 
 
