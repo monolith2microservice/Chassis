@@ -13,11 +13,19 @@ class EventPublisher:
         self.channel = None
 
     def connect(self):
-        """Connects to RabbitMQ (retrying several times)."""
-        context = ssl.create_default_context()
+        """Connects to RabbitMQ (retrying several times) using client cert auth."""
+        cafile = "/etc/rabbitmq/ssl/ca_cert.pem"
+        client_cert = "/etc/rabbitmq/ssl/client_cert.pem"
+        client_key = "/etc/rabbitmq/ssl/client_key.pem"
+
+        # Create SSL context that presents a client cert and verifies server with CA
+        context = ssl.create_default_context(cafile=cafile)
+        # load client's cert + key so RabbitMQ (which requires client cert) accepts us
+        context.load_cert_chain(certfile=client_cert, keyfile=client_key)
+
         for _ in range(5):
             try:
-                params = pika.URLParameters(settings.RABBITMQ_URL)
+                params = pika.URLParameters(settings.RABBITMQ_URL)  # should be amqps://...
                 params.ssl_options = pika.SSLOptions(context)
                 self.connection = pika.BlockingConnection(params)
                 self.channel = self.connection.channel()
@@ -31,29 +39,24 @@ class EventPublisher:
 
                 logger.info("Connected to RabbitMQ exchange: %s", self.exchange)
                 return
-            except pika.exceptions.AMQPConnectionError:
-                logger.warning("RabbitMQ not ready, retrying...")
+            except pika.exceptions.AMQPConnectionError as e:
+                logger.warning("RabbitMQ not ready, retrying... (%s)", e)
                 time.sleep(2)
+
         raise RuntimeError("Could not connect to RabbitMQ")
 
+
     def publish(self, topic: str, payload: dict):
-        """Publishes a persistent JSON event to RabbitMQ."""
         if not self.channel:
             self.connect()
         body = json.dumps(payload)
-
-        properties = pika.BasicProperties(
-            delivery_mode=2,
-            content_type="application/json"
-        )
-
+        properties = pika.BasicProperties(delivery_mode=2, content_type="application/json")
         self.channel.basic_publish(
             exchange=self.exchange,
             routing_key=topic,
             body=body.encode("utf-8"),
             properties=properties
         )
-
         logger.info("Event published: %s -> %s", topic, payload)
 
 class EventSubscriber:
@@ -66,8 +69,14 @@ class EventSubscriber:
         self.channel = None
 
     def connect(self):
-        """Connects and declares durable exchange/queue."""
-        context = ssl.create_default_context()
+        """Connects and declares durable exchange/queue using client cert auth."""
+        cafile = "/etc/rabbitmq/ssl/ca_cert.pem"
+        client_cert = "/etc/rabbitmq/ssl/client_cert.pem"
+        client_key = "/etc/rabbitmq/ssl/client_key.pem"
+
+        context = ssl.create_default_context(cafile=cafile)
+        context.load_cert_chain(certfile=client_cert, keyfile=client_key)
+
         for _ in range(5):
             try:
                 params = pika.URLParameters(settings.RABBITMQ_URL)
@@ -84,10 +93,12 @@ class EventSubscriber:
                 self.channel.queue_declare(queue=self.queue_name, durable=True)
                 logger.info("Connected to RabbitMQ exchange: %s", self.exchange)
                 return
-            except pika.exceptions.AMQPConnectionError:
-                logger.warning("RabbitMQ not ready, retrying...")
+            except pika.exceptions.AMQPConnectionError as e:
+                logger.warning("RabbitMQ not ready, retrying... (%s)", e)
                 time.sleep(2)
+
         raise RuntimeError("Could not connect to RabbitMQ")
+
 
     async def listen(self, routing_key: str):
         """Async generator that yields incoming messages."""
