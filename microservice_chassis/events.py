@@ -58,6 +58,20 @@ class EventPublisher:
             properties=properties
         )
         logger.info("Event published: %s -> %s", topic, payload)
+    
+    def close(self):
+        """Cierra la conexión con RabbitMQ si está abierta."""
+        try:
+            if self.channel and self.channel.is_open:
+                self.channel.close()
+            if self.connection and self.connection.is_open:
+                self.connection.close()
+            logger.info("RabbitMQ connection closed cleanly.")
+        except Exception as e:
+            logger.warning("Error closing RabbitMQ connection: %s", e)
+
+
+    
 
 class EventSubscriber:
     """Reusable RabbitMQ subscriber with durable queue."""
