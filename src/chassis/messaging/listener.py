@@ -6,19 +6,15 @@ from pika.spec import (
     Basic,
     BasicProperties,
 )
-from typing import (
-    Callable,
-    Optional
-)
+from typing import Callable
 import json
 import logging
-
-logger = logging.getLogger(__name__)
 
 class RabbitMQListener(RabbitMQBaseClient):
     """RabbitMQ listener with TLS support"""
     def __init__(
         self,
+        logger: logging.Logger,
         rabbitmq_config
     ) -> None:
         super().__init__(rabbitmq_config)

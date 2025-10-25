@@ -2,6 +2,7 @@ from .listener import RabbitMQListener
 from .types import (
     _HandlerFunc,
     MessageType,
+    RabbitMQConfig,
 )
 from typing import (
     Any,
@@ -46,22 +47,13 @@ def _process_message(message: MessageType, queue: str):
 
 def start_rabbitmq_listener(
     queue: str,
-    config: Dict[str, Any],
+    config: RabbitMQConfig,
 ) -> None:
     """Start RabbitMQ listener in a separate thread."""
     try:
         with RabbitMQListener(
             logger=logger,
-            host=config.get("host", "localhost"),
-            port=config.get("port", 5672),
-            username=config.get("username", "guest"),
-            password=config.get("password", "guest"),
-            queue=queue,
-            use_tls=config.get("use_tls", False),
-            ca_cert=config.get("ca_cert_path", None),
-            client_cert=config.get("client_cert_path", None),
-            client_key=config.get("client_key_path", None),
-            prefetch_count=config.get("prefetch_count", 10)
+            rabbitmq_config=config,
         ) as listener:
             logger.info(
                 f"RabbitMQ listener connected to queue: {queue}"
