@@ -9,6 +9,7 @@ from typing import (
     Dict,
     LiteralString,
 )
+import asyncio
 import logging
 
 # Global Variables ############################################################
@@ -19,17 +20,26 @@ _QUEUE_HANDLERS: Dict[str, _HandlerFunc] = {}
 def register_queue_handler(
     queue: LiteralString
 ) -> Callable[[_HandlerFunc], _HandlerFunc]:
-    """Decorator to register event handlers"""
+    """Decorator to register sync or async event handlers"""
     def decorator(func: _HandlerFunc) -> _HandlerFunc:
         _QUEUE_HANDLERS[queue] = func
-        logger.info(f"Registered handler for queue: {queue}")
+        handler_type = "async" if asyncio.iscoroutinefunction(func) else "sync"
+        logger.info(f"Registered {handler_type} handler for queue: {queue}")
         return func
     return decorator
 
 def _process_message(message: MessageType, queue: str):
     """Process incoming RabbitMQ messages."""
     try:
-        _QUEUE_HANDLERS[queue](message)
+        handler = _QUEUE_HANDLERS[queue]
+        if asyncio.iscoroutinefunction(handler):
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(handler(message))
+            except RuntimeError:
+                asyncio.run(handler(message))
+        else:
+            handler(message)
     except Exception as e:
         logger.error(f"Error processing event: {e}", exc_info=True)
         raise

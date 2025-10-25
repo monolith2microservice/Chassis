@@ -1,6 +1,8 @@
 from .client import RabbitMQBaseClient
-from .types import MessageType
-from pathlib import Path
+from .types import (
+    RabbitMQConfig,
+    MessageType
+)
 from pika import BasicProperties
 from typing import Optional
 import json
@@ -9,29 +11,9 @@ class RabbitMQPublisher(RabbitMQBaseClient):
     """RabbitMQ publisher with TLS support"""
     def __init__(
         self,
-        host: str,
-        port: int,  # Default TLS port
-        username: str = "guest",
-        password: str = "guest",
-        queue: str = "my_queue",
-        use_tls: bool = True,
-        ca_cert: Optional[Path] = None,
-        client_cert: Optional[Path] = None,
-        client_key: Optional[Path] = None,
-        prefetch_count: int = 1
+        rabbitmq_config: RabbitMQConfig
     ) -> None:
-        super().__init__(
-            host, 
-            port, 
-            username, 
-            password, 
-            queue, 
-            use_tls, 
-            ca_cert, 
-            client_cert, 
-            client_key, 
-            prefetch_count
-        )
+        super().__init__(rabbitmq_config)
 
     def publish(
         self,
