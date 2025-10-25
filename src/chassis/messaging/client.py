@@ -17,13 +17,21 @@ import ssl
 
 class RabbitMQBaseClient:
     _CONTENT_TYPE: LiteralString = "application/json"
+    _DEFAULT_EXCHANGE: LiteralString = ""
 
     def __init__(
         self,
-        rabbitmq_config: RabbitMQConfig
+        queue: str,
+        rabbitmq_config: RabbitMQConfig,
+        exchange: Optional[str] = None,
+        exchange_type: str = "direct",
+        routing_key: Optional[str] = None,
     ) -> None:
-        self._queue = rabbitmq_config["queue"]
+        self._queue = queue
         self._prefetch_count = rabbitmq_config["prefetch_count"]
+        self._exchange = exchange if exchange is not None else self._DEFAULT_EXCHANGE
+        self._exchange_type = exchange_type
+        self._routing_key = routing_key if routing_key is not None else queue
         self._connection: Optional[BlockingConnection] = None
         self._channel: Optional[BlockingChannel] = None
         
@@ -91,7 +99,19 @@ class RabbitMQBaseClient:
             durable=True
         )
 
+        # If using custom exchange, bind queue to exchange
+        if not self._is_default_exchange():
+            self._channel.queue_bind(
+                exchange=self._exchange,
+                queue=self._queue,
+                routing_key=self._routing_key
+            )
+
     def _close(self) -> None:
         """Close connection"""
         if self._connection and not self._connection.is_closed:
             self._connection.close()
+
+    def _is_default_exchange(self) -> bool:
+        """Check if using default exchange."""
+        return self._exchange == self._DEFAULT_EXCHANGE

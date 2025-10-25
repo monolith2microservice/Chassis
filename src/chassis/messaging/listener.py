@@ -1,12 +1,17 @@
 from .client import RabbitMQBaseClient
-from .types import MessageType
-from pathlib import Path
+from .types import (
+    MessageType,
+    RabbitMQConfig,
+)
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import (
     Basic,
     BasicProperties,
 )
-from typing import Callable
+from typing import (
+    Callable,
+    Optional,
+)
 import json
 import logging
 
@@ -15,9 +20,13 @@ class RabbitMQListener(RabbitMQBaseClient):
     def __init__(
         self,
         logger: logging.Logger,
-        rabbitmq_config
+        queue: str,
+        rabbitmq_config: RabbitMQConfig,
+        exchange: Optional[str] = None,
+        exchange_type: str = "direct",
+        routing_key: Optional[str] = None,
     ) -> None:
-        super().__init__(rabbitmq_config)
+        super().__init__(queue, rabbitmq_config)
         self._logger = logger
 
     def _parse_json(
@@ -86,3 +95,14 @@ class RabbitMQListener(RabbitMQBaseClient):
         except KeyboardInterrupt:
             self._logger.info("Interrupted by user")
             self._channel.stop_consuming()
+
+#### EXAMPLES
+# # Custom topic exchange (automatic binding)
+# listener = RabbitMQListener(
+#     logger=logger,
+#     queue="logs_queue",
+#     rabbitmq_config=config,
+#     exchange="logs",
+#     exchange_type="topic",
+#     routing_key="app.*.error"  # Topic pattern
+# )

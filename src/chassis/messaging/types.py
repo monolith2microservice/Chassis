@@ -20,7 +20,6 @@ class RabbitMQConfig(TypedDict):
     port: int
     username: str
     password: str
-    queue: str
     use_tls: bool
     ca_cert: Optional[Path]
     client_cert: Optional[Path]

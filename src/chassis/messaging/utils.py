@@ -53,6 +53,7 @@ def start_rabbitmq_listener(
     try:
         with RabbitMQListener(
             logger=logger,
+            queue=queue,
             rabbitmq_config=config,
         ) as listener:
             logger.info(

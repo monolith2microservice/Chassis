@@ -11,12 +11,14 @@ class RabbitMQPublisher(RabbitMQBaseClient):
     """RabbitMQ publisher with TLS support"""
     def __init__(
         self,
+        queue: str,
         rabbitmq_config: RabbitMQConfig
     ) -> None:
-        super().__init__(rabbitmq_config)
+        super().__init__(queue, rabbitmq_config)
 
     def publish(
         self,
+        routing_key: Optional[str],
         message: MessageType,
         exchange: Optional[str] = None,
         persistent: bool = True,
@@ -42,10 +44,38 @@ class RabbitMQPublisher(RabbitMQBaseClient):
             delivery_mode=2 if persistent else 1,
         )
 
+        # Use instance defaults if not provided
+        target_exchange = exchange if exchange is not None else self._exchange
+        target_routing_key = routing_key if routing_key is not None else self._routing_key
+
         # Publish message
         self._channel.basic_publish(
-            exchange=exchange if exchange is not None else "",
-            routing_key=self._queue,
+            exchange=target_exchange,
+            routing_key=target_routing_key,
             body=body,
             properties=properties,
         )
+
+#### Examples
+# # Default exchange (no binding)
+# publisher = RabbitMQPublisher(
+#     queue="my_queue",
+#     rabbitmq_config=config
+# )
+
+# # Custom direct exchange (automatic binding)
+# publisher = RabbitMQPublisher(
+#     queue="my_queue",
+#     rabbitmq_config=config,
+#     exchange="my_exchange",
+#     exchange_type="direct",
+#     routing_key="my.routing.key"
+# )
+
+# # Fanout exchange (binding still needed but routing_key ignored)
+# publisher = RabbitMQPublisher(
+#     queue="broadcast_queue",
+#     rabbitmq_config=config,
+#     exchange="notifications",
+#     exchange_type="fanout"
+# )
