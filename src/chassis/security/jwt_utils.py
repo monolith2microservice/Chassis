@@ -1,8 +1,6 @@
 # microservice_chassis/security/jwt_utils.py
-import os
 import jwt
 import logging
-import httpx
 
 logger = logging.getLogger(__name__)
 

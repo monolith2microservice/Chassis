@@ -5,3 +5,4 @@ pika
 sqlalchemy
 fastapi
 pydantic-settings
+pyjwt
