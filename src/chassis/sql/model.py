@@ -1,9 +1,9 @@
+from .database import Base
 from sqlalchemy import (
     Column,
     DateTime,
 )
 from sqlalchemy.sql import func
-from .database import Base
 
 class BaseModel(Base):
     """Base database table representation to reuse."""

@@ -1,4 +1,8 @@
-from .database import Base, Engine
+from .database import (
+    Base, 
+    Engine,
+    SessionLocal,
+)
 from .dependency import get_db
 from .model import BaseModel
 from .utils import (
@@ -23,4 +27,5 @@ __all__: List[LiteralString] = [
     "get_element_statement_result",
     "get_list",
     "get_list_statement_result",
+    "SessionLocal",
 ]
