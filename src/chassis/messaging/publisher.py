@@ -18,8 +18,8 @@ class RabbitMQPublisher(RabbitMQBaseClient):
 
     def publish(
         self,
-        routing_key: Optional[str],
         message: MessageType,
+        routing_key: Optional[str] = None,
         exchange: Optional[str] = None,
         persistent: bool = True,
     ) -> None:
