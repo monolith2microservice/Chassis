@@ -41,7 +41,7 @@ class RabbitMQBaseClient:
         # Configure TLS if enabled
         if rabbitmq_config["use_tls"]:
             ssl_context = ssl.create_default_context(
-                purpose=ssl.Purpose.CLIENT_AUTH,
+                purpose=ssl.Purpose.SERVER_AUTH,
                 cafile=str(rabbitmq_config["ca_cert"]) if rabbitmq_config["ca_cert"] else None
             )
             
