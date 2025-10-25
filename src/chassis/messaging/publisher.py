@@ -32,8 +32,11 @@ class RabbitMQPublisher(RabbitMQBaseClient):
             exchange: Exchange name (uses instance default if None)
             persistent: Whether message should survive broker restart
         """
-        if self._channel is None:
-            raise RuntimeError("Not connected. Make sure it is connected.")
+        if self._channel is None or self._connection is None or self._connection.is_closed:
+            try:
+                self._connect()
+            except Exception as e:
+                raise RuntimeError(f"Failed to reconnect to RabbitMQ: {e}")
         
         # Serialize message
         body = json.dumps(message)
