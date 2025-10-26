@@ -7,22 +7,25 @@ from fastapi.security import (
     HTTPAuthorizationCredentials, 
     HTTPBearer
 )
-from typing import Optional
+from typing import (
+    Callable, 
+    Optional,
+)
 import jwt
 import logging
 
 Bearer = HTTPBearer()
 
 def create_jwt_verifier(
-        public_key: Optional[str],
+        public_key: Callable[[], Optional[str]],
         logger: logging.Logger,
         algorithm: str = "RS256"
 ):
     """
     Factory function to create a JWT verifier with a specific public key.
     """
-    assert public_key is not None, "Public key should be set"
     def verify_token(credentials: HTTPAuthorizationCredentials = Depends(Bearer)):
+        assert public_key is not None, "Public key should be set"
         try:
             payload = jwt.decode(
                 credentials.credentials,
