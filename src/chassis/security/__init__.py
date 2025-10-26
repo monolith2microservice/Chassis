@@ -21,21 +21,28 @@ def create_jwt_verifier(
         logger: logging.Logger,
         algorithm: str = "RS256"
 ):
-    """
-    Factory function to create a JWT verifier with a specific public key.
-    """
+
     def verify_token(credentials: HTTPAuthorizationCredentials = Depends(Bearer)):
-        assert public_key is not None, "Public key should be set"
         try:
+            current_key = public_key()  # get latest value dynamically
+            if not current_key:
+                raise_and_log_error(
+                    logger,
+                    status.HTTP_503_SERVICE_UNAVAILABLE,
+                    "Public key not loaded yet"
+                )
+
             payload = jwt.decode(
                 credentials.credentials,
-                public_key,
+                current_key,
                 algorithms=[algorithm]
             )
             return payload
+
         except jwt.InvalidTokenError:
             raise_and_log_error(logger, status.HTTP_401_UNAUTHORIZED, "Invalid token")
+
         except Exception as e:
             raise_and_log_error(logger, status.HTTP_500_INTERNAL_SERVER_ERROR, f"Internal error: {e}")
-    
+
     return verify_token
