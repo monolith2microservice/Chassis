@@ -53,8 +53,8 @@ class RabbitMQBaseClient:
                 )
             
             # For development, you might want to disable hostname checking
-            # ssl_context.check_hostname = False
-            # ssl_context.verify_mode = ssl.CERT_NONE
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
             
             ssl_options = SSLOptions(ssl_context, rabbitmq_config["host"])
         else:
