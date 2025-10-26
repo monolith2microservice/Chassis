@@ -12,9 +12,18 @@ class RabbitMQPublisher(RabbitMQBaseClient):
     def __init__(
         self,
         queue: str,
-        rabbitmq_config: RabbitMQConfig
+        rabbitmq_config: RabbitMQConfig,
+        exchange: Optional[str] = None,
+        exchange_type: str = "direct",
+        routing_key: Optional[str] = None,
     ) -> None:
-        super().__init__(queue, rabbitmq_config)
+        super().__init__(
+            queue=queue, 
+            rabbitmq_config=rabbitmq_config,
+            exchange=exchange,
+            exchange_type=exchange_type,
+            routing_key=routing_key,
+        )
 
     def publish(
         self,
@@ -52,6 +61,7 @@ class RabbitMQPublisher(RabbitMQBaseClient):
         target_routing_key = routing_key if routing_key is not None else self._routing_key
 
         # Publish message
+        assert self._channel is not None, "To publish, a channel must be created"
         self._channel.basic_publish(
             exchange=target_exchange,
             routing_key=target_routing_key,

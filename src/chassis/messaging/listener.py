@@ -27,7 +27,13 @@ class RabbitMQListener(RabbitMQBaseClient):
         exchange_type: str = "direct",
         routing_key: Optional[str] = None,
     ) -> None:
-        super().__init__(queue, rabbitmq_config)
+        super().__init__(
+            queue=queue, 
+            rabbitmq_config=rabbitmq_config,
+            exchange=exchange,
+            exchange_type=exchange_type,
+            routing_key=routing_key,
+        )
         self._logger = logger
 
     def _parse_json(
