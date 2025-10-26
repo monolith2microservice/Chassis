@@ -5,7 +5,10 @@ from .types import (
 )
 from pika import BasicProperties
 from typing import Optional
+import logging
 import json
+
+logger = logging.getLogger(__name__)
 
 class RabbitMQPublisher(RabbitMQBaseClient):
     """RabbitMQ publisher with TLS support"""
@@ -47,9 +50,13 @@ class RabbitMQPublisher(RabbitMQBaseClient):
             except Exception as e:
                 raise RuntimeError(f"Failed to reconnect to RabbitMQ: {e}")
         
+        logger.info(f"Queue {self._queue}: Sending message before serialization {message}")
+
         # Serialize message
         body = json.dumps(message)
         
+        logger.info(f"Queue {self._queue}: Sending message after serialization {body}")
+
         # Message properties
         properties = BasicProperties(
             content_type=super()._CONTENT_TYPE,
