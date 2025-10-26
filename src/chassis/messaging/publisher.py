@@ -47,7 +47,8 @@ class RabbitMQPublisher(RabbitMQBaseClient):
             except Exception as e:
                 raise RuntimeError(f"Failed to reconnect to RabbitMQ: {e}")
         
-        print(f"Queue {self._queue}: Sending message before serialization {message}")
+        print(f"Queue {self._queue}: Type of the message: {type(message)}")
+        print(f"Queue {self._queue}: Sending message before serialization: {message}")
 
         # Serialize message
         body = json.dumps(message)
