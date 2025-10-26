@@ -72,15 +72,11 @@ class RabbitMQListener(RabbitMQBaseClient):
             except Exception as e:
                 self._logger.error(f"Failed to process message: {e}", exc_info=True)
                 
-                # Reject and requeue message on error
                 if not auto_ack:
                     ch.basic_nack(
                         delivery_tag=method.delivery_tag,
                         requeue=False
-                    )
-
-                # sys.exit("PANIC!")
-                
+                    )                
             
 
         if self._channel is None:
