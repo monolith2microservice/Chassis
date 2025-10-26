@@ -41,19 +41,15 @@ class RabbitMQPublisher(RabbitMQBaseClient):
             exchange: Exchange name (uses instance default if None)
             persistent: Whether message should survive broker restart
         """
+        assert isinstance(message, dict), "'message' must be a dictionary type."
         if self._channel is None or self._connection is None or self._connection.is_closed:
             try:
                 self._connect()
             except Exception as e:
                 raise RuntimeError(f"Failed to reconnect to RabbitMQ: {e}")
-        
-        print(f"Queue {self._queue}: Type of the message: {type(message)}")
-        print(f"Queue {self._queue}: Sending message before serialization: {message}")
 
         # Serialize message
         body = json.dumps(message)
-        
-        print(f"Queue {self._queue}: Sending message after serialization {body}")
 
         # Message properties
         properties = BasicProperties(
