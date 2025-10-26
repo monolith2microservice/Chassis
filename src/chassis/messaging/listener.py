@@ -14,6 +14,7 @@ from typing import (
 )
 import json
 import logging
+import sys
 
 class RabbitMQListener(RabbitMQBaseClient):
     """RabbitMQ listener with TLS support"""
@@ -75,8 +76,11 @@ class RabbitMQListener(RabbitMQBaseClient):
                 if not auto_ack:
                     ch.basic_nack(
                         delivery_tag=method.delivery_tag,
-                        requeue=True
+                        requeue=False
                     )
+
+                # sys.exit("PANIC!")
+                
             
 
         if self._channel is None:
