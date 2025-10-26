@@ -14,7 +14,6 @@ from typing import (
 )
 import json
 import logging
-import sys
 
 class RabbitMQListener(RabbitMQBaseClient):
     """RabbitMQ listener with TLS support"""

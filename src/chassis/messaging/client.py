@@ -1,5 +1,4 @@
 from .types import RabbitMQConfig
-from pathlib import Path
 from pika import (
     BlockingConnection,
     ConnectionParameters,
@@ -101,6 +100,11 @@ class RabbitMQBaseClient:
 
         # If using custom exchange, bind queue to exchange
         if not self._is_default_exchange():
+            self._channel.exchange_declare(
+                exchange=self._exchange,
+                exchange_type=self._exchange_type,
+                durable=True
+            )
             self._channel.queue_bind(
                 exchange=self._exchange,
                 queue=self._queue,
