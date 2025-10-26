@@ -42,7 +42,7 @@ class RabbitMQListener(RabbitMQBaseClient):
     ) -> MessageType:
         assert content_type == RabbitMQBaseClient._CONTENT_TYPE, "Only valid content should be processed."
         decoded_str = body.decode()
-        self._logger.debug(f"Queue: {self._queue} Received message: {decoded_str}")
+        self._logger.info(f"Queue: {self._queue} Received message: {decoded_str}")
         return json.loads(decoded_str)
 
     def consume(
