@@ -5,34 +5,46 @@ from .types import (
     RabbitMQConfig,
 )
 from typing import (
-    Any,
     Callable,
     Dict,
     LiteralString,
+    Optional,
+    Tuple,
 )
 import asyncio
 import logging
 
 # Global Variables ############################################################
 logger = logging.getLogger(__name__)
-_QUEUE_HANDLERS: Dict[str, _HandlerFunc] = {}
+_QUEUE_HANDLERS: Dict[str, Tuple[_HandlerFunc, Optional[Dict[str, str]]]] = {}
 
 # Functions ###################################################################
 def register_queue_handler(
-    queue: LiteralString
+    queue: LiteralString,
+    exchange: Optional[str] = None,
+    exchange_type: str = "direct",
+    routing_key: Optional[str] = None,
 ) -> Callable[[_HandlerFunc], _HandlerFunc]:
-    """Decorator to register sync or async event handlers"""
     def decorator(func: _HandlerFunc) -> _HandlerFunc:
-        _QUEUE_HANDLERS[queue] = func
+        exchange_config = None
+        if exchange is not None:
+            exchange_config = {
+                "exchange": exchange,
+                "exchange_type": exchange_type,
+                "routing_key": routing_key if routing_key is not None else queue,
+            }
+        
+        _QUEUE_HANDLERS[queue] = (func, exchange_config)
         handler_type = "async" if asyncio.iscoroutinefunction(func) else "sync"
-        logger.info(f"Registered {handler_type} handler for queue: {queue}")
+        exchange_info = f" (exchange: {exchange}, type: {exchange_type})" if exchange else " (default exchange)"
+        logger.info(f"Registered {handler_type} handler for queue: {queue}{exchange_info}")
         return func
     return decorator
 
 def _process_message(message: MessageType, queue: str):
     """Process incoming RabbitMQ messages."""
     try:
-        handler = _QUEUE_HANDLERS[queue]
+        handler, _ = _QUEUE_HANDLERS[queue]
         if asyncio.iscoroutinefunction(handler):
             try:
                 loop = asyncio.get_running_loop()
@@ -49,13 +61,28 @@ def start_rabbitmq_listener(
     queue: str,
     config: RabbitMQConfig,
 ) -> None:
-    """Start RabbitMQ listener in a separate thread."""
+    """
+    Start RabbitMQ listener in a separate thread.
+    Uses exchange configuration from the registered handler decorator.
+    """
     try:
-        with RabbitMQListener(
-            logger=logger,
-            queue=queue,
-            rabbitmq_config=config,
-        ) as listener:
+        # Get the exchange configuration for this queue
+        if queue not in _QUEUE_HANDLERS:
+            raise ValueError(f"No handler registered for queue: {queue}")
+        
+        _, exchange_config = _QUEUE_HANDLERS[queue]
+        
+        # Create listener with appropriate exchange configuration
+        listener_kwargs = {
+            "logger": logger,
+            "queue": queue,
+            "rabbitmq_config": config,
+        }
+        
+        if exchange_config:
+            listener_kwargs.update(exchange_config)
+        
+        with RabbitMQListener(**listener_kwargs) as listener:
             logger.info(
                 f"RabbitMQ listener connected to queue: {queue}"
             )
