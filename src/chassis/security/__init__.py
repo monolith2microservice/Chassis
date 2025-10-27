@@ -48,13 +48,32 @@ def create_jwt_verifier(
     return verify_token
 
 def normalize_public_key(key: str) -> str:
-    if '\n' in key:
+    """
+    Normaliza una clave pública en cualquier formato al formato PEM correcto.
+    Maneja:
+    - Claves en una sola línea
+    - Claves con \n literales
+    - Claves ya correctamente formateadas
+    """
+    # Reemplazar \n literales por saltos de línea reales
+    key = key.replace('\\n', '\n')
+    
+    # Remover espacios en blanco extras
+    key = key.strip()
+    
+    # Si ya tiene el formato correcto (múltiples líneas con headers), devolverla
+    if key.startswith('-----BEGIN') and '\n' in key and key.count('\n') > 2:
         return key
     
-    # Remover los headers si existen en la cadena
+    # Extraer solo el contenido de la clave (sin headers)
     key = key.replace('-----BEGIN PUBLIC KEY-----', '')
     key = key.replace('-----END PUBLIC KEY-----', '')
+    key = key.replace('\n', '')  # Remover todos los saltos de línea
     key = key.strip()
     
     # Reconstruir con el formato correcto
-    return f"-----BEGIN PUBLIC KEY-----\n{key}\n-----END PUBLIC KEY-----"
+    # La clave debe tener saltos de línea cada 64 caracteres (estándar PEM)
+    lines = [key[i:i+64] for i in range(0, len(key), 64)]
+    formatted_key = '\n'.join(lines)
+    
+    return f"-----BEGIN PUBLIC KEY-----\n{formatted_key}\n-----END PUBLIC KEY-----"
