@@ -25,6 +25,7 @@ def create_jwt_verifier(
     def verify_token(credentials: HTTPAuthorizationCredentials = Depends(Bearer)):
         try:
             current_key = public_key()  # get latest value dynamically
+            print(current_key)
             if not current_key:
                 raise_and_log_error(
                     logger,
