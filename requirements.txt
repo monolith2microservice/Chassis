@@ -1,8 +1,0 @@
-setuptools
-wheel
-twine
-pika
-sqlalchemy
-fastapi
-pydantic-settings
-pyjwt
