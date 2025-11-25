@@ -17,8 +17,11 @@ class ConsulClient:
         self._consul_port = consul_port
         self._service_id: Optional[str] = None
 
-    def register_service(self, service_name: str, port: int) -> None:
+    def register_service(self, service_name: str, port: int, health_path: str = "/health") -> None:
         try:
+            if not health_path.startswith("/"):
+                health_path = "/" + health_path
+            
             hostname = socket.gethostname()
             ip_address = socket.gethostbyname(hostname)
             
@@ -30,7 +33,7 @@ class ConsulClient:
                 "Address": ip_address,
                 "Port": port,
                 "Check": {
-                    "HTTP": f"http://{ip_address}:{port}/",
+                    "HTTP": f"http://{ip_address}:{port}{health_path}",
                     "Interval": "10s",
                     "DeregisterCriticalServiceAfter": "1m"
                 }
