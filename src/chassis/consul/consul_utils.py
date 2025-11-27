@@ -4,6 +4,7 @@ import logging
 import atexit
 import os
 from typing import Optional
+import random
 
 class ConsulClient:
     def __init__(
@@ -54,10 +55,33 @@ class ConsulClient:
     def deregister_service(self) -> None:
         if not self._service_id:
             return
-
         try:
             url = f"http://{self._consul_host}:{self._consul_port}/v1/agent/service/deregister/{self._service_id}"
             requests.put(url, timeout=2)
             self._logger.info(f"Service '{self._service_id}' deregistered.")
         except Exception as e:
             self._logger.warning(f"Error during deregistration: {e}")
+            
+    def get_service_url(self, service_name: str) -> Optional[str]:
+        try:
+            url = f"http://{self._consul_host}:{self._consul_port}/v1/health/service/{service_name}"
+            res = requests.get(url, params={"passing": 1}, timeout=2)
+            
+            if res.status_code == 200:
+                instances = res.json()
+                if not instances:
+                    self._logger.warning(f"No instances found for '{service_name}'")
+                    return None
+
+                target = random.choice(instances)
+                service_ip = target["Service"]["Address"]
+                service_port = target["Service"]["Port"]
+                
+                return f"http://{service_ip}:{service_port}"
+            else:
+                self._logger.error(f"Error finding service: {res.text}")
+                return None
+
+        except Exception as e:
+            self._logger.error(f"Discovery failed: {e}")
+            return None
