@@ -97,10 +97,11 @@ def setup_rabbitmq_logging(
     root_logger.setLevel(level) 
     root_logger.addHandler(handler)
 
-    logging.info(
-        f" RabbitMQ logging configured for service '{service_name}' "
+    print(
+        f"[RabbitMQLogging] Configured for service '{service_name}' "
         f"(level={logging.getLevelName(level)})"
     )
+
 
 
 def log_with_context(
