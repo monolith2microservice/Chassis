@@ -70,7 +70,6 @@ class ConsulClient:
             
             if res.status_code == 200:
                 instances = res.json()
-                self._logger.info(f"DEBUG CONSUL RESPONSE for '{service_name}': {instances}")
                 if not instances:
                     self._logger.warning(f"No instances found for '{service_name}'")
                     return None
