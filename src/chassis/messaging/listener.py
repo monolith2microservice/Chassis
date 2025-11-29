@@ -16,6 +16,9 @@ import json
 import logging
 
 class RabbitMQListener(RabbitMQBaseClient):
+    class OneUseInterrupt(Exception):
+        pass
+
     """RabbitMQ listener with TLS support"""
     def __init__(
         self,
@@ -48,15 +51,8 @@ class RabbitMQListener(RabbitMQBaseClient):
         self,
         callback: Callable[[MessageType, str], None],
         auto_ack: bool = False,
+        one_use: bool = False,
     ) -> None:
-        """
-        Start consuming messages.
-        
-        Args:
-            callback: Function called for each message. 
-                     Signature: callback(message, delivery, properties)
-            auto_ack: Whether to automatically acknowledge messages
-        """
         def _on_message(
             ch: BlockingChannel,
             method: Basic.Deliver,
@@ -70,19 +66,19 @@ class RabbitMQListener(RabbitMQBaseClient):
                     content_type=properties.content_type,
                 )
                 callback(message, self._queue)
-
-                # Manual acknowledgment if not auto_ack
                 if not auto_ack:
                     ch.basic_ack(delivery_tag=method.delivery_tag)
+                if one_use:
+                    raise RabbitMQListener.OneUseInterrupt
+            except RabbitMQListener.OneUseInterrupt:
+                raise
             except Exception as e:
                 self._logger.error(f"Failed to process message: {e}", exc_info=True)
-                
                 if not auto_ack:
                     ch.basic_nack(
                         delivery_tag=method.delivery_tag,
                         requeue=False
                     )                
-            
 
         if self._channel is None:
             raise RuntimeError("Not connected. Make sure it is connected.")
@@ -97,8 +93,11 @@ class RabbitMQListener(RabbitMQBaseClient):
         self._logger.info(f"Started consuming from queue: {self._queue}")
         try:
             self._channel.start_consuming()
+        except RabbitMQListener.OneUseInterrupt:
+            self._logger.info("One use interrupt")
         except KeyboardInterrupt:
             self._logger.info("Interrupted by user")
+        finally:
             self._channel.stop_consuming()
 
 #### EXAMPLES

@@ -7,7 +7,6 @@ from .types import (
 from typing import (
     Callable,
     Dict,
-    LiteralString,
     Optional,
     Tuple,
 )
@@ -20,7 +19,7 @@ _QUEUE_HANDLERS: Dict[str, Tuple[_HandlerFunc, Optional[Dict[str, str]]]] = {}
 
 # Functions ###################################################################
 def register_queue_handler(
-    queue: LiteralString,
+    queue: str,
     exchange: Optional[str] = None,
     exchange_type: str = "direct",
     routing_key: Optional[str] = None,
@@ -60,6 +59,7 @@ def _process_message(message: MessageType, queue: str):
 def start_rabbitmq_listener(
     queue: str,
     config: RabbitMQConfig,
+    one_use: bool = False,
 ) -> None:
     """
     Start RabbitMQ listener in a separate thread.
@@ -71,6 +71,10 @@ def start_rabbitmq_listener(
             raise ValueError(f"No handler registered for queue: {queue}")
         
         _, exchange_config = _QUEUE_HANDLERS[queue]
+
+        # Delete if queue is one use
+        if one_use:
+            del _QUEUE_HANDLERS[queue]
         
         # Create listener with appropriate exchange configuration
         listener_kwargs = {

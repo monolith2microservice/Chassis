@@ -2,7 +2,6 @@ import logging
 import sys
 import socket
 from datetime import datetime
-from typing import Optional
 
 from chassis.messaging import RabbitMQPublisher, RabbitMQConfig
 
@@ -101,23 +100,3 @@ def setup_rabbitmq_logging(
         f"[RabbitMQLogging] Configured for service '{service_name}' "
         f"(level={logging.getLevelName(level)})"
     )
-
-
-
-def log_with_context(
-    logger: logging.Logger,
-    level: int,
-    message: str,
-    client_id: Optional[int] = None,
-    order_id: Optional[int] = None,
-):
-    """
-    Helper to include contextual fields (client_id, order_id).
-    """
-    extra = {}
-    if client_id is not None:
-        extra["client_id"] = client_id
-    if order_id is not None:
-        extra["order_id"] = order_id
-
-    logger.log(level, message, extra=extra)

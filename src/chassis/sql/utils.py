@@ -44,10 +44,10 @@ async def delete_element_by_id(
     db: AsyncSession, 
     model: Type[T], 
     element_id: int
-) -> Optional[T]:
+) -> None:
     """Delete any DB element by id."""
     element = await get_element_by_id(db, model, element_id)
     if element is not None:
         await db.delete(element)
         await db.commit()
-    return element
+        await db.flush()
