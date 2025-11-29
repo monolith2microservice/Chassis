@@ -33,6 +33,8 @@ class RabbitMQHandler(logging.Handler):
         """
         Send a log record to RabbitMQ as a JSON message.
         """
+        if getattr(record, "from_rabbit_handler", False): #si el log viene del propio rabithandler que no lo vuelva a procesar
+            return
         try:
             # Python logging levels → routing_key format
             routing_key = f"{self.service_name}.{record.levelname.lower()}"
