@@ -97,4 +97,5 @@ def start_rabbitmq_listener(
     except KeyboardInterrupt:
         logger.info("RabbitMQ listener stopped by keyboard interrupt")
     except Exception as e:
+        print(f"Exc: {e}")
         logger.error(f"RabbitMQ listener error: {e}", exc_info=True)
