@@ -64,6 +64,7 @@ class RabbitMQHandler(logging.Handler):
             if order_id is not None:
                 message["order_id"] = order_id
 
+            record.from_rabbit_handler = True
             # Publish the log using topic exchange
             with RabbitMQPublisher(
                 queue="",  
