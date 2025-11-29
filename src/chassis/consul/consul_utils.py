@@ -66,10 +66,11 @@ class ConsulClient:
     def get_service_url(self, service_name: str) -> Optional[str]:
         try:
             url = f"http://{self._consul_host}:{self._consul_port}/v1/health/service/{service_name}"
-            res = requests.get(url, params={"passing": 1}, timeout=2)
+            res = requests.get(url, params={"passing": 1}, timeout=11)
             
             if res.status_code == 200:
                 instances = res.json()
+                self._logger.info(f"DEBUG CONSUL RESPONSE for '{service_name}': {instances}")
                 if not instances:
                     self._logger.warning(f"No instances found for '{service_name}'")
                     return None
