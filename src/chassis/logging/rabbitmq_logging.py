@@ -64,7 +64,7 @@ class RabbitMQHandler(logging.Handler):
 
             # Publish the log using topic exchange
             with RabbitMQPublisher(
-                queue="",  # NOT USED → topic exchange
+                queue="",  
                 rabbitmq_config=self.rabbitmq_config,
                 exchange=self.exchange,
                 exchange_type=self.exchange_type,
@@ -87,18 +87,15 @@ def setup_rabbitmq_logging(
     rabbitmq_config: RabbitMQConfig,
     level: int = logging.INFO,
 ):
-    """
-    Attach RabbitMQ log handler to the root logger.
-    Must be called AFTER fileConfig/basicConfig.
-    """
+
     handler = RabbitMQHandler(service_name, rabbitmq_config, level)
     root_logger = logging.getLogger()
 
-    root_logger.setLevel(level)  # Ensure root logger respects level
+    root_logger.setLevel(level) 
     root_logger.addHandler(handler)
 
     logging.info(
-        f"📡 RabbitMQ logging configured for service '{service_name}' "
+        f" RabbitMQ logging configured for service '{service_name}' "
         f"(level={logging.getLevelName(level)})"
     )
 
