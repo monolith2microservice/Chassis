@@ -90,7 +90,10 @@ def start_rabbitmq_listener(
             logger.info(
                 f"RabbitMQ listener connected to queue: {queue}"
             )
-            listener.consume(_process_message)
+            listener.consume(
+                callback=_process_message, 
+                one_use=one_use
+            )
     except KeyboardInterrupt:
         logger.info("RabbitMQ listener stopped by keyboard interrupt")
     except Exception as e:
