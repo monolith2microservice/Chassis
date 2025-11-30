@@ -69,7 +69,6 @@ class RabbitMQHandler(logging.Handler):
                 publisher.publish(log_data)
                 
         except Exception as e:
-            print(f"ERROR: {e}")
             self.handleError(record)
 
 class RabbitMQLoggerManager:  
@@ -101,14 +100,28 @@ _manager: Optional[RabbitMQLoggerManager] = None
 def setup_rabbitmq_logging(
     rabbitmq_config: RabbitMQConfig, 
     exchange: str = "logs",
-    capture_dependencies: bool = False
+    capture_dependencies: bool = False,
+    additional_loggers: Optional[list[str]] = None
 ) -> None:
     global _manager
     _manager = RabbitMQLoggerManager(rabbitmq_config, exchange)
     
     # Optionally add handler to root logger for dependencies with propagate=1
     if capture_dependencies:
-        _manager.get_logger("")
+        _manager.get_logger('')
+    
+    # Add handler to specific loggers and all their children
+    if additional_loggers:
+        for prefix in additional_loggers:
+            # Add to the parent logger
+            _manager.get_logger(prefix)
+            
+            # Add to all existing child loggers (chassis.messaging, chassis.events, etc.)
+            for logger_name in list(logging.Logger.manager.loggerDict.keys()):
+                if logger_name.startswith(f"{prefix}."):
+                    logger = logging.getLogger(logger_name)
+                    if isinstance(logger, logging.Logger):
+                        _manager.get_logger(logger_name)
 
 
 def get_logger(name: str) -> logging.Logger:
