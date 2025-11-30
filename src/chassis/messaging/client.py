@@ -25,6 +25,7 @@ class RabbitMQBaseClient:
         exchange: Optional[str] = None,
         exchange_type: str = "direct",
         routing_key: Optional[str] = None,
+        auto_delete_queue: bool = False,
     ) -> None:
         self._queue = queue
         self._prefetch_count = rabbitmq_config["prefetch_count"]
@@ -33,6 +34,7 @@ class RabbitMQBaseClient:
         self._routing_key = routing_key if routing_key is not None else queue
         self._connection: Optional[BlockingConnection] = None
         self._channel: Optional[BlockingChannel] = None
+        self._auto_delete = auto_delete_queue
         
         # Create credentials
         credentials = PlainCredentials(rabbitmq_config["username"], rabbitmq_config["password"])
@@ -95,7 +97,8 @@ class RabbitMQBaseClient:
         # Declare queue (idempotent)
         self._channel.queue_declare(
             queue=self._queue, 
-            durable=True
+            durable=True,
+            auto_delete=self._auto_delete,
         )
 
         # If using custom exchange, bind queue to exchange

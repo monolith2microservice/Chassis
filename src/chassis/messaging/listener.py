@@ -28,6 +28,7 @@ class RabbitMQListener(RabbitMQBaseClient):
         exchange: Optional[str] = None,
         exchange_type: str = "direct",
         routing_key: Optional[str] = None,
+        auto_delete_queue: bool = False,
     ) -> None:
         super().__init__(
             queue=queue, 
@@ -35,6 +36,7 @@ class RabbitMQListener(RabbitMQBaseClient):
             exchange=exchange,
             exchange_type=exchange_type,
             routing_key=routing_key,
+            auto_delete_queue=auto_delete_queue,
         )
         self._logger = logger
 

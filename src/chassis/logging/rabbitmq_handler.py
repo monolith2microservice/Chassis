@@ -46,7 +46,7 @@ class RabbitMQHandler(logging.Handler):
                 "subtype": subtype,
                 "level": record.levelname,
                 "message": message,
-                "timestamp": datetime.now(timezone.utc),
+                "timestamp": str(datetime.now(timezone.utc)),
                 "source": {
                     "filename": record.filename,
                     "lineno": record.lineno,
