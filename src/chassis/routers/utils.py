@@ -10,15 +10,15 @@ def get_system_metrics() -> dict:
     metrics = {
         "cpu_percent": cpu_percent,
         "memory": {
-            "total": mem.total,
-            "available": mem.available,
-            "used": mem.used,
+            "total": f"{mem.total / 1000000} MB",
+            "available": f"{mem.available / 1000000} MB",
+            "used": f"{mem.used / 1000000} MB",
             "percent": mem.percent,
         },
         "disk": {
-            "total": disk.total,
-            "used": disk.used,
-            "free": disk.free,
+            "total": f"{disk.total / 1000000} MB",
+            "used": f"{disk.used / 1000000} MB",
+            "free": f"{disk.free / 1000000} MB",
             "percent": disk.percent,
         }
     }
