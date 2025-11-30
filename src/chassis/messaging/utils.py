@@ -43,7 +43,7 @@ def register_queue_handler(
         _QUEUE_HANDLERS[queue] = (func, exchange_config)
         handler_type = "async" if asyncio.iscoroutinefunction(func) else "sync"
         exchange_info = f" (exchange: {exchange}, type: {exchange_type})" if exchange else " (default exchange)"
-        logger.info(f"Registered {handler_type} handler for queue: {queue}{exchange_info}")
+        logger.info(f"[LOG:CHASSIS:RABBITMQ_UTILS] - Registered {handler_type} handler for queue: {queue}{exchange_info}")
         return func
     return decorator
 
@@ -60,7 +60,7 @@ def _process_message(message: MessageType, queue: str):
         else:
             handler(message)
     except Exception as e:
-        logger.error(f"Error processing event: {e}", exc_info=True)
+        logger.error(f"[LOG:CHASSIS:RABBITMQ_UTILS] - Error processing event: Reason={e}", exc_info=True)
         raise
 
 def start_rabbitmq_listener(
@@ -90,17 +90,15 @@ def start_rabbitmq_listener(
             listener_kwargs.update(exchange_config)
         
         with RabbitMQListener(**listener_kwargs) as listener:
-            logger.info(
-                f"RabbitMQ listener connected to queue: {queue}"
-            )
+            logger.info(f"[LOG:CHASSIS:RABBITMQ_UTILS] - RabbitMQ listener connected to queue: {queue}")
             listener.consume(
                 callback=_process_message, 
                 one_use=one_use
             )
     except KeyboardInterrupt:
-        logger.info("RabbitMQ listener stopped by keyboard interrupt")
+        logger.info("[LOG:CHASSIS:RABBITMQ_UTILS] - RabbitMQ listener stopped by keyboard interrupt")
     except Exception as e:
-        logger.error(f"RabbitMQ listener error: {e}", exc_info=True)
+        logger.error(f"[LOG:CHASSIS:RABBITMQ_UTILS] - RabbitMQ listener error: Reason={e}", exc_info=True)
     finally:
         # Delete if queue is one use
         if one_use:

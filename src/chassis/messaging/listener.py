@@ -73,7 +73,7 @@ class RabbitMQListener(RabbitMQBaseClient):
             except RabbitMQListener.OneUseInterrupt:
                 raise
             except Exception as e:
-                self._logger.error(f"Failed to process message: {e}", exc_info=True)
+                self._logger.error(f"[LOG:CHASSIS:RABBITMQ_LISTENER] - Failed to process message: Reason={e}", exc_info=True)
                 if not auto_ack:
                     ch.basic_nack(
                         delivery_tag=method.delivery_tag,
@@ -90,13 +90,13 @@ class RabbitMQListener(RabbitMQBaseClient):
             auto_ack=auto_ack,
         )
 
-        self._logger.info(f"Started consuming from queue: {self._queue}")
+        self._logger.info(f"[LOG:CHASSIS:RABBITMQ_LISTENER] - Started consuming from queue: {self._queue}")
         try:
             self._channel.start_consuming()
         except RabbitMQListener.OneUseInterrupt:
-            self._logger.info("One use interrupt")
+            self._logger.info("[LOG:CHASSIS:RABBITMQ_LISTENER] - One-use interrupt")
         except KeyboardInterrupt:
-            self._logger.info("Interrupted by user")
+            self._logger.info("[LOG:CHASSIS:RABBITMQ_LISTENER] - Interrupted by user")
         finally:
             self._channel.stop_consuming()
 

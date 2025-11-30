@@ -45,13 +45,13 @@ class ConsulClient:
             res = requests.put(url, json=payload, timeout=2)
             
             if res.status_code == 200:
-                self._logger.info(f"Service '{service_name}' registered successfully as '{self._service_id}'")
+                self._logger.info(f"[LOG:CHASSIS:CONSUL] - Service '{service_name}' registered successfully as '{self._service_id}'")
                 atexit.register(self.deregister_service)
             else:
-                self._logger.error(f"Failed to register: {res.text}")
+                self._logger.error(f"[LOG:CHASSIS:CONSUL] - Failed to register: Reason={res.text}", exc_info=True)
 
         except Exception as e:
-            self._logger.error(f"Connection failed: {e}")
+            self._logger.error(f"[LOG:CHASSIS:CONSUL] - Connection failed: Reason={e}", exc_info=True)
 
     def deregister_service(self) -> None:
         if not self._service_id:
@@ -59,9 +59,9 @@ class ConsulClient:
         try:
             url = f"http://{self._consul_host}:{self._consul_port}/v1/agent/service/deregister/{self._service_id}"
             requests.put(url, timeout=2)
-            self._logger.info(f"Service '{self._service_id}' deregistered.")
+            self._logger.info(f"[LOG:CHASSIS:CONSUL] - Service '{self._service_id}' deregistered.")
         except Exception as e:
-            self._logger.warning(f"Error during deregistration: {e}")
+            self._logger.warning(f"[LOG:CHASSIS:CONSUL] - Error during deregistration: Reason={e}", exc_info=True)
             
     def get_service_url(self, service_name: str) -> Optional[str]:
         try:
@@ -71,7 +71,7 @@ class ConsulClient:
             if res.status_code == 200:
                 instances = res.json()
                 if not instances:
-                    self._logger.warning(f"No instances found for '{service_name}'")
+                    self._logger.warning(f"[LOG:CHASSIS:CONSUL] - No instances found for '{service_name}'")
                     return None
 
                 target = random.choice(instances)
@@ -80,9 +80,9 @@ class ConsulClient:
                 
                 return f"http://{service_ip}:{service_port}"
             else:
-                self._logger.error(f"Error finding service: {res.text}")
+                self._logger.error(f"[LOG:CHASSIS:CONSUL] - Error finding service: {res.text}")
                 return None
 
         except Exception as e:
-            self._logger.error(f"Discovery failed: {e}")
+            self._logger.error(f"[LOG:CHASSIS:CONSUL] - Discovery failed: Reason={e}", exc_info=True)
             return None

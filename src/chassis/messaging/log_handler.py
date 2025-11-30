@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Callable, Type, Any, Dict, Optional
+from typing import Callable, Type, Any
 import logging
 
 from .types import MessageType
