@@ -4,6 +4,12 @@ from .types import (
     MessageType,
     RabbitMQConfig,
 )
+from pika import (
+    BlockingConnection,
+    ConnectionParameters,
+    PlainCredentials,
+    SSLOptions,
+)
 from typing import (
     Callable,
     Dict,
@@ -12,6 +18,7 @@ from typing import (
 )
 import asyncio
 import logging
+import ssl
 
 # Global Variables ############################################################
 logger = logging.getLogger(__name__)
@@ -98,3 +105,56 @@ def start_rabbitmq_listener(
         # Delete if queue is one use
         if one_use:
             del _QUEUE_HANDLERS[queue]
+
+def is_rabbitmq_healthy(rabbitmq_config: RabbitMQConfig) -> bool:
+    try:
+        # Create credentials
+        credentials = PlainCredentials(rabbitmq_config["username"], rabbitmq_config["password"])
+        
+        # Configure TLS if enabled
+        if rabbitmq_config["use_tls"]:
+            ssl_context = ssl.create_default_context(
+                purpose=ssl.Purpose.SERVER_AUTH,
+                cafile=str(rabbitmq_config["ca_cert"]) if rabbitmq_config["ca_cert"] else None
+            )
+            
+            # Load client certificate if provided
+            if rabbitmq_config["client_cert"] and rabbitmq_config["client_key"]:
+                ssl_context.load_cert_chain(
+                    certfile=str(rabbitmq_config["client_cert"]),
+                    keyfile=str(rabbitmq_config["client_key"])
+                )
+            
+            # For development, you might want to disable hostname checking
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+            
+            ssl_options = SSLOptions(ssl_context, rabbitmq_config["host"])
+        else:
+            ssl_options = None
+        
+        # Create connection parameters
+        params = ConnectionParameters(
+            host=rabbitmq_config["host"],
+            port=rabbitmq_config["port"],
+            credentials=credentials,
+            ssl_options=ssl_options,
+            heartbeat=600,
+            blocked_connection_timeout=300,
+        )
+
+        connection = BlockingConnection(params)
+        channel = connection.channel()
+
+        channel.queue_declare(
+            queue="", 
+            exclusive=True,
+            auto_delete=True,
+        )
+
+        channel.close()
+        connection.close()
+        return True
+
+    except Exception:
+        return False
