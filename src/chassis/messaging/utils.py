@@ -66,14 +66,12 @@ def start_rabbitmq_listener(
     Uses exchange configuration from the registered handler decorator.
     """
     try:
-        print("1")
         # Get the exchange configuration for this queue
         if queue not in _QUEUE_HANDLERS:
             raise ValueError(f"No handler registered for queue: {queue}")
         
         _, exchange_config = _QUEUE_HANDLERS[queue]
         
-        print("2")
         # Create listener with appropriate exchange configuration
         listener_kwargs = {
             "logger": logger,
@@ -88,16 +86,13 @@ def start_rabbitmq_listener(
             logger.info(
                 f"RabbitMQ listener connected to queue: {queue}"
             )
-            print("3")
             listener.consume(
                 callback=_process_message, 
                 one_use=one_use
             )
-            print("4")
     except KeyboardInterrupt:
         logger.info("RabbitMQ listener stopped by keyboard interrupt")
     except Exception as e:
-        print(f"Exc: {e}")
         logger.error(f"RabbitMQ listener error: {e}", exc_info=True)
     finally:
         # Delete if queue is one use
