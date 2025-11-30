@@ -64,10 +64,12 @@ class RabbitMQHandler(logging.Handler):
                 exchange=self.exchange,
                 exchange_type="topic",
                 routing_key=routing_key,
+                auto_delete_queue=True,
             ) as publisher:
                 publisher.publish(log_data)
                 
-        except Exception:
+        except Exception as e:
+            print(f"ERROR: {e}")
             self.handleError(record)
 
 class RabbitMQLoggerManager:  
