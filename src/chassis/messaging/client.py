@@ -20,8 +20,8 @@ class RabbitMQBaseClient:
 
     def __init__(
         self,
-        queue: str,
         rabbitmq_config: RabbitMQConfig,
+        queue: Optional[str] = None,
         exchange: Optional[str] = None,
         exchange_type: str = "direct",
         routing_key: Optional[str] = None,
