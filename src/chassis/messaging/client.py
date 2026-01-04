@@ -91,28 +91,29 @@ class RabbitMQBaseClient:
         self._connection = BlockingConnection(self._params)
         self._channel = self._connection.channel()
         
-        # Set QoS (prefetch count)
-        self._channel.basic_qos(prefetch_count=self._prefetch_count)
         
-        # Declare queue (idempotent)
-        self._channel.queue_declare(
-            queue=self._queue, 
-            durable=True,
-            auto_delete=self._auto_delete,
-        )
+        if self._queue is not None:
+            # Set QoS (prefetch count)
+            self._channel.basic_qos(prefetch_count=self._prefetch_count)
 
-        # If using custom exchange, bind queue to exchange
-        if not self._is_default_exchange():
-            self._channel.exchange_declare(
-                exchange=self._exchange,
-                exchange_type=self._exchange_type,
-                durable=True
-            )
-            self._channel.queue_bind(
-                exchange=self._exchange,
+            # Declare queue (idempotent)
+            self._channel.queue_declare(
                 queue=self._queue,
-                routing_key=self._routing_key
+                durable=True,
+                auto_delete=self._auto_delete,
             )
+            # If using custom exchange, bind queue to exchange
+            if self._exchange != self._DEFAULT_EXCHANGE:
+                self._channel.exchange_declare(
+                    exchange=self._exchange,
+                    exchange_type=self._exchange_type,
+                    durable=True,
+                )
+                self._channel.queue_bind(
+                    exchange=self._exchange,
+                    queue=self._queue,
+                    routing_key=self._routing_key or self._queue,
+                )
 
     def _close(self) -> None:
         """Close connection"""
