@@ -11,7 +11,7 @@ class RabbitMQPublisher(RabbitMQBaseClient):
     """RabbitMQ publisher with TLS support"""
     def __init__(
         self,
-        queue: str,
+        queue: Optional[str] = None,,
         rabbitmq_config: RabbitMQConfig,
         exchange: Optional[str] = None,
         exchange_type: str = "direct",
