@@ -59,7 +59,7 @@ class RabbitMQHandler(logging.Handler):
             routing_key = f"log.{log_type.lower()}"
             
             with RabbitMQPublisher(
-                queue="",
+                #queue="",
                 rabbitmq_config=self.rabbitmq_config,
                 exchange=self.exchange,
                 exchange_type="topic",
