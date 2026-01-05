@@ -6,21 +6,21 @@ from .types import (
 from pika import BasicProperties
 from typing import Optional
 import json
+
 class RabbitMQPublisher(RabbitMQBaseClient):
     """RabbitMQ publisher with TLS support"""
     def __init__(
         self,
+        queue: str,
         rabbitmq_config: RabbitMQConfig,
-       # queue: Optional[str] = None,
         exchange: Optional[str] = None,
         exchange_type: str = "direct",
         routing_key: Optional[str] = None,
         auto_delete_queue: bool = False,
     ) -> None:
         super().__init__(
-           # queue=queue, 
+            queue=queue, 
             rabbitmq_config=rabbitmq_config,
-            queue=None,
             exchange=exchange,
             exchange_type=exchange_type,
             routing_key=routing_key,
@@ -63,16 +63,8 @@ class RabbitMQPublisher(RabbitMQBaseClient):
         target_exchange = exchange if exchange is not None else self._exchange
         target_routing_key = routing_key if routing_key is not None else self._routing_key
 
-        
-        if target_exchange is None:
-            raise ValueError("Exchange must be specified for publishing")
-
-        if target_routing_key is None:
-            raise ValueError("Routing key must be specified for publishing")
-
         # Publish message
         assert self._channel is not None, "To publish, a channel must be created"
-
         self._channel.basic_publish(
             exchange=target_exchange,
             routing_key=target_routing_key,
